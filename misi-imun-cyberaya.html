@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ ImmunoXplore : Misi Imun Cyberaya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+        :root {
+            --c-kombat: #0ea5e9; /* Sky 500 */
+            --c-tekno: #f43f5e;  /* Rose 500 */
+            --c-inviso: #64748b; /* Slate 500 */
+            --c-neuro: #f59e0b;  /* Amber 500 */
+            --bg-light: #e2e8f0; /* Slate 200 */
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: #1e293b;
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.1) 0%, transparent 50%);
+        }
+
+        /* Kotak Moden Berkaca */
+        .cute-box {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid rgba(255, 255, 255, 1);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(148, 163, 184, 0.3), inset 0 2px 0 rgba(255, 255, 255, 1);
+            backdrop-filter: blur(12px);
+        }
+
+        /* Butang 3D */
+        .cute-button {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: white;
+            border-radius: 100px;
+            box-shadow: 0 6px 0 #1e3a8a, 0 10px 20px rgba(2, 132, 199, 0.3);
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 900;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        .cute-button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 0 #1e3a8a, 0 15px 25px rgba(2, 132, 199, 0.4); 
+            filter: brightness(1.1);
+        }
+        .cute-button:active { 
+            transform: translateY(6px); 
+            box-shadow: 0 0px 0 #1e3a8a; 
+        }
+
+        .btn-tekno { background: linear-gradient(135deg, #fb7185, #e11d48); box-shadow: 0 6px 0 #881337; }
+        .btn-tekno:hover { box-shadow: 0 8px 0 #881337; } .btn-tekno:active { box-shadow: 0 0px 0 #881337; }
+
+        .btn-green { background: linear-gradient(135deg, #34d399, #059669); box-shadow: 0 6px 0 #064e3b; }
+        .btn-green:hover { box-shadow: 0 8px 0 #064e3b; } .btn-green:active { box-shadow: 0 0px 0 #064e3b; }
+
+        /* Board & Tiles */
+        #board-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 900px; 
+            margin: 0 auto; 
+            aspect-ratio: 16/10; 
+        }
+        #canvas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            width: 100%;
+            height: 100%;
+            background: rgba(203, 213, 225, 0.6); 
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            border: 3px solid white;
+        }
+
+        .tile {
+            background: #f1f5f9; 
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #64748b; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), inset 0 -4px 0 rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .tile-alt { background: #e2e8f0; }
+
+        .tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1), inset 0 -4px 0 rgba(0,0,0,0.05);
+        }
+
+        .tile-finish { 
+            background: linear-gradient(135deg, #fef08a, #f59e0b); 
+            color: white; 
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4), inset 0 -4px 0 rgba(180, 83, 9, 0.5);
+            border: none;
+        }
+
+        .players-container {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px;
+            pointer-events: none; z-index: 10;
+        }
+
+        .avatar-token {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: bounce-slow 1s infinite alternate;
+            border: 2px solid #fff;
+        }
+
+        #start-zone {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+            gap: 10px;
+            background: white;
+            border: 3px dashed #cbd5e1;
+            border-radius: 16px;
+            margin-top: 20px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        /* Mini Games CSS */
+        .balloon {
+            width: 200px; height: 230px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            position: relative; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; font-weight: 900; color: white; font-size: 1.5rem;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2), 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s; animation: float 3s infinite ease-in-out;
+            word-wrap: break-word; line-height: 1.3;
+        }
+        .balloon::after {
+            content: ''; position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+            border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid currentColor;
+        }
+        .balloon:hover { transform: scale(1.1) rotate(5deg); }
+        .balloon.popped { transform: scale(0); opacity: 0; pointer-events: none; }
+
+        .match-btn {
+            background: white; border: 4px solid #e2e8f0;
+            border-radius: 16px; padding: 20px; font-weight: 900; font-size: 1.5rem;
+            transition: all 0.2s; cursor: pointer; color: #334155;
+            word-wrap: break-word; display: flex; align-items: center; justify-content: center; text-align: center;
+            box-shadow: 0 4px 0 #cbd5e1; min-height: 100px;
+        }
+        .match-btn:active { transform: translateY(4px); box-shadow: 0 0px 0 #cbd5e1; }
+        .match-btn.selected { background: #f0f9ff; color: var(--c-kombat); border-color: var(--c-kombat); box-shadow: 0 4px 0 var(--c-kombat); }
+        .match-btn.matched { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #047857; pointer-events: none; opacity: 0.9; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes bounce-slow { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+
+        /* Custom Dice */
+        .dice-scene { width: 90px; height: 90px; perspective: 600px; }
+        .dice { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .dice-face {
+            position: absolute; width: 90px; height: 90px;
+            background: white; border: 4px solid #e2e8f0; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; font-weight: 900; color: #0ea5e9;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+        }
+        .dice-face:nth-child(1) { transform: rotateY(0deg) translateZ(45px); }
+        .dice-face:nth-child(2) { transform: rotateY(90deg) translateZ(45px); }
+        .dice-face:nth-child(3) { transform: rotateY(180deg) translateZ(45px); }
+        .dice-face:nth-child(4) { transform: rotateY(-90deg) translateZ(45px); }
+        .dice-face:nth-child(5) { transform: rotateX(90deg) translateZ(45px); }
+        .dice-face:nth-child(6) { transform: rotateX(-90deg) translateZ(45px); }
+        .rolling { animation: rolling-anim 0.4s infinite linear; }
+        @keyframes rolling-anim { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } }
+
+        .hidden-screen { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 lg:p-8">
+
+    <!-- BGM AUDIO & CONTROLS -->
+    <audio id="bgm" loop>
+        <source src="Egen Ali theme song [wVth0zTtB9w].mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- MODAL OVERLAY -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden-screen opacity-0 transition-opacity duration-300">
+        <div class="cute-box max-w-2xl w-full mx-4 p-12 text-center transform scale-95 transition-transform duration-300" id="modal-content">
+            <div id="modal-icon" class="text-8xl mb-6 animate-bounce">💬</div>
+            <h2 id="modal-title" class="text-5xl font-black mb-6 tracking-wide uppercase text-[--c-kombat]"></h2>
+            <p id="modal-message" class="text-slate-600 mb-10 text-2xl font-bold whitespace-pre-wrap leading-relaxed"></p>
+            <button id="modal-btn" class="cute-button w-full py-6 text-2xl tracking-wider">TERUSKAN</button>
+        </div>
+    </div>
+
+    <!-- OVERLAY MINI GAME -->
+    <div id="minigame-overlay" class="fixed inset-0 bg-slate-50/95 backdrop-blur-xl z-[60] flex items-center justify-center hidden-screen opacity-0 transition-opacity duration-300 p-6 overflow-y-auto">
+        <div id="mg-timer-container" class="fixed top-6 right-6 md:top-10 md:right-10 flex items-center gap-4 bg-white px-8 py-4 border-4 border-slate-200 rounded-full shadow-lg z-[70] transition-colors">
+            <span class="text-5xl">⏱️</span>
+            <span id="mg-timer-text" class="text-6xl font-black text-slate-800 font-mono">20</span>
+        </div>
+
+        <div class="w-full max-w-6xl text-center flex flex-col items-center justify-center mt-20 md:mt-0 my-auto">
+            
+            <div id="area-balloon" class="hidden-screen space-y-10 w-full animate-fade-in">
+                <div class="flex flex-col items-center gap-4">
+                    <span class="text-7xl md:text-8xl animate-bounce">🎈</span>
+                    <h3 class="text-4xl md:text-5xl font-black text-[--c-kombat] uppercase tracking-widest">Pecahkan Belon Jawapan!</h3>
+                </div>
+                <p id="mg-balloon-q" class="text-slate-800 font-black text-4xl md:text-5xl leading-tight mb-10 px-4 max-w-5xl mx-auto"></p>
+                <div id="balloon-container" class="flex justify-center gap-8 md:gap-10 flex-wrap items-end pb-8"></div>
+            </div>
+
+            <div id="area-fill" class="hidden-screen space-y-10 w-full animate-fade-in">
+                <div class="flex flex-col items-center gap-4">
+                    <span class="text-7xl md:text-8xl animate-pulse">⌨️</span>
+                    <h3 class="text-4xl md:text-5xl font-black text-[--c-neuro] uppercase tracking-widest">Lengkapkan Data</h3>
+                </div>
+                <div class="bg-white p-10 md:p-16 rounded-3xl border-4 border-slate-200 max-w-4xl mx-auto w-full shadow-sm">
+                    <p id="mg-fill-q" class="text-slate-800 font-black text-4xl md:text-5xl leading-relaxed mb-12"></p>
+                    <input type="text" id="mg-fill-input" class="w-full bg-slate-50 border-4 border-[--c-neuro] rounded-2xl px-8 py-8 text-center text-4xl md:text-5xl text-slate-900 focus:outline-none uppercase font-black shadow-inner" placeholder="TULIS JAWAPAN DI SINI..." autocomplete="off">
+                </div>
+                <button onclick="sfx.click(); checkFillAnswer()" class="cute-button w-full max-w-lg mx-auto py-8 text-3xl md:text-4xl mt-8">SAHKAN JAWAPAN</button>
+            </div>
+
+            <div id="area-match" class="hidden-screen space-y-10 w-full animate-fade-in">
+                <div class="flex flex-col items-center gap-4">
+                    <span class="text-7xl md:text-8xl animate-bounce">🧩</span>
+                    <h3 class="text-4xl md:text-5xl font-black text-[--c-tekno] uppercase tracking-widest">Padankan Fakta</h3>
+                    <p class="text-2xl md:text-3xl text-slate-500 font-bold">Pilih kotak kiri, kemudian kotak kanan untuk memadankan.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-8 md:gap-10 max-w-5xl mx-auto w-full" id="match-container">
+                    <div class="flex flex-col gap-6 md:gap-8" id="match-left"></div>
+                    <div class="flex flex-col gap-6 md:gap-8" id="match-right"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="w-full max-w-6xl relative">
+        
+        <!-- WELCOME SCREEN -->
+        <div id="screen-welcome" class="cute-box p-12 md:p-16 text-center space-y-10 animate-fade-in max-w-4xl mx-auto">
+            <div class="space-y-6">
+                <div class="flex justify-center gap-6 text-6xl md:text-7xl mb-6">
+                    <span>🔵</span><span>🔴</span><span>⚪</span><span>🟡</span>
+                </div>
+                <h1 class="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600">AKADEMI M.A.T.A</h1>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-400 uppercase tracking-widest">🛡️ Misi Imun Cyberaya</h2>
+            </div>
+            
+            <div class="space-y-8 bg-slate-50 p-10 rounded-3xl border-2 border-slate-200">
+                <!-- LEGENDA TERAS -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl border-2 border-[--c-kombat] shadow-sm">
+                        <span class="text-3xl md:text-4xl mb-2">🔵</span>
+                        <span class="text-sm md:text-base font-black text-[--c-kombat] uppercase">Kombat</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl border-2 border-[--c-tekno] shadow-sm">
+                        <span class="text-3xl md:text-4xl mb-2">🔴</span>
+                        <span class="text-sm md:text-base font-black text-[--c-tekno] uppercase">Tekno</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl border-2 border-[--c-inviso] shadow-sm">
+                        <span class="text-3xl md:text-4xl mb-2">⚪</span>
+                        <span class="text-sm md:text-base font-black text-[--c-inviso] uppercase">Inviso</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl border-2 border-[--c-neuro] shadow-sm">
+                        <span class="text-3xl md:text-4xl mb-2">🟡</span>
+                        <span class="text-sm md:text-base font-black text-[--c-neuro] uppercase">Neuro</span>
+                    </div>
+                </div>
+
+                <p class="text-2xl md:text-3xl font-black text-slate-700">Daftarkan Bilangan Ejen</p>
+                <div class="flex justify-center gap-6 mb-8">
+                    <button class="p-count-btn w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 border-slate-300 text-2xl md:text-3xl font-black bg-white hover:border-sky-400 transition text-slate-600 shadow-sm" onclick="sfx.click(); setPlayerCount(1)">1</button>
+                    <button class="p-count-btn w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 border-slate-300 text-2xl md:text-3xl font-black bg-white hover:border-sky-400 transition text-slate-600 shadow-sm" onclick="sfx.click(); setPlayerCount(2)">2</button>
+                    <button class="p-count-btn w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 border-slate-300 text-2xl md:text-3xl font-black bg-white hover:border-sky-400 transition text-slate-600 shadow-sm" onclick="sfx.click(); setPlayerCount(3)">3</button>
+                    <button class="p-count-btn w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 border-slate-300 text-2xl md:text-3xl font-black bg-white hover:border-sky-400 transition text-slate-600 shadow-sm" onclick="sfx.click(); setPlayerCount(4)">4</button>
+                </div>
+                
+                <div id="player-inputs" class="space-y-4"></div>
+
+                <button id="btn-start" onclick="sfx.click(); startGame()" class="cute-button w-full py-6 mt-8 text-2xl md:text-3xl hidden">MULAKAN SIMULASI</button>
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="screen-game" class="hidden-screen flex flex-col gap-6">
+            
+            <div class="flex flex-col md:flex-row gap-6 w-full">
+                
+                <!-- Kotak Status dan Masa Diasingkan Secara Mendatar Supaya Kemas -->
+                <div class="cute-box p-6 flex-[2] flex flex-col sm:flex-row justify-between items-center gap-6 shadow-sm">
+                    <!-- Status Ejen -->
+                    <div class="flex items-center gap-6">
+                        <span id="turn-icon" class="text-6xl md:text-7xl animate-bounce"></span>
+                        <div class="text-left">
+                            <p class="text-sm md:text-base text-slate-400 font-bold uppercase tracking-widest">Giliran Semasa</p>
+                            <h2 id="turn-name" class="text-3xl md:text-4xl font-black uppercase">EJEN</h2>
+                        </div>
+                    </div>
+                    
+                    <!-- Masa Misi -->
+                    <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-center min-w-[150px]">
+                        <p class="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-widest">Masa Misi</p>
+                        <p id="global-timer-text" class="text-3xl md:text-4xl font-mono font-black text-[#10b981]">15:00</p>
+                    </div>
+                </div>
+
+                <div class="cute-box p-6 flex-1 bg-slate-50 border-2 border-slate-100 flex flex-col items-center justify-center shadow-inner">
+                    <div class="flex items-center gap-6">
+                        <div class="dice-scene">
+                            <div class="dice" id="visual-dice">
+                                <div class="dice-face" style="color: var(--c-kombat);">1</div>
+                                <div class="dice-face" style="color: var(--c-tekno);">2</div>
+                                <div class="dice-face" style="color: var(--c-inviso);">3</div>
+                                <div class="dice-face" style="color: var(--c-neuro);">4</div>
+                                <div class="dice-face" style="color: var(--c-kombat);">5</div>
+                                <div class="dice-face" style="color: var(--c-tekno);">6</div>
+                            </div>
+                        </div>
+                        <button id="btn-roll" onclick="startDiceRoll()" class="cute-button px-6 py-4 md:px-8 md:py-5 text-xl font-black shadow-lg">LONTAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cute-box p-6 md:p-8 bg-white w-full shadow-lg">
+                <div id="board-container">
+                    <canvas id="canvas-overlay"></canvas>
+                    <div id="board"></div>
+                </div>
+                
+                <div id="start-zone">
+                    <span class="text-slate-400 font-black text-xl md:text-2xl uppercase tracking-widest mr-6">ZON MULA 🚀</span>
+                    <div id="start-zone-players" class="flex gap-4 min-w-[60px] min-h-[50px] items-center justify-center"></div>
+                </div>
+
+                <div class="flex justify-between items-center text-base md:text-lg font-black mt-8 px-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="flex items-center gap-3"><div class="w-10 h-4 rounded-full bg-[#10b981]"></div><span class="text-slate-600">LALUAN NAIK</span></div>
+                    <div class="flex items-center gap-3"><div class="w-10 h-4 rounded-full bg-[#f43f5e]"></div><span class="text-slate-600">JANGKITAN VIRUS</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- END SCREEN -->
+        <div id="screen-end" class="hidden-screen cute-box p-16 text-center space-y-8 mt-10 max-w-2xl mx-auto border-t-8 border-t-[--c-neuro]">
+            <div class="text-9xl animate-bounce">🏆</div>
+            <div>
+                <h1 class="text-5xl md:text-6xl font-black mb-4 uppercase text-[--c-neuro]">MISI TAMAT</h1>
+                <p class="text-slate-400 font-bold uppercase tracking-widest mb-4 text-base md:text-xl">Ejen Terbaik M.A.T.A</p>
+                <p id="end-winner" class="text-4xl md:text-5xl font-black mb-8"></p>
+                
+                <div id="end-ranking-list" class="w-full space-y-4 mb-8"></div>
+            </div>
+            <button onclick="sfx.click(); location.reload()" class="cute-button w-full py-6 text-2xl md:text-3xl">MULA SEMULA</button>
+        </div>
+
+    </div>
+
+<script>
+    // --- AUDIO SYSTEM (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // Koleksi Kesan Bunyi
+    const sfx = {
+        click: () => { initAudio(); playTone(1200, 'sine', 0.05, 0.05); }, 
+        dice: () => { initAudio(); playTone(800, 'square', 0.05, 0.02); }, 
+        move: () => { initAudio(); playTone(400, 'triangle', 0.1, 0.05); }, 
+        pop: () => { initAudio(); playTone(900, 'sine', 0.1, 0.1); }, 
+        correct: () => { 
+            initAudio(); 
+            playTone(523.25, 'sine', 0.1, 0.1); 
+            setTimeout(() => playTone(659.25, 'sine', 0.2, 0.1), 100); 
+            setTimeout(() => playTone(783.99, 'sine', 0.3, 0.1), 200); 
+        },
+        wrong: () => {
+            initAudio();
+            playTone(300, 'sawtooth', 0.2, 0.1);
+            setTimeout(() => playTone(250, 'sawtooth', 0.4, 0.1), 200);
+        },
+        tick: () => { initAudio(); playTone(1000, 'square', 0.05, 0.03); },
+        win: () => {
+            initAudio();
+            playTone(523.25, 'sine', 0.2, 0.1);
+            setTimeout(() => playTone(659.25, 'sine', 0.2, 0.1), 200);
+            setTimeout(() => playTone(783.99, 'sine', 0.2, 0.1), 400);
+            setTimeout(() => playTone(1046.50, 'sine', 0.6, 0.1), 600);
+        }
+    };
+
+    // Mainkan BGM
+    function playBGM() {
+        const bgm = document.getElementById('bgm');
+        if(bgm) {
+            bgm.volume = 0.3;
+            bgm.play().catch(e => console.log("Menunggu interaksi pengguna untuk mainkan muzik."));
+        }
+    }
+
+    // --- TEAMS CONFIG ---
+    const TEAMS = [
+        { id: 'kombat', name: 'Teras Kombat', icon: '🔵', color: '#0ea5e9' },
+        { id: 'tekno', name: 'Teras Tekno', icon: '🔴', color: '#f43f5e' },
+        { id: 'inviso', name: 'Teras Inviso', icon: '⚪', color: '#64748b' },
+        { id: 'neuro', name: 'Teras Neuro', icon: '🟡', color: '#f59e0b' }
+    ];
+
+    const TOTAL_TILES = 50;
+    const GRID_LAYOUT = [
+        50, 49, 48, 47, 46, 45, 44, 43, 42, 41,
+        31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        30, 29, 28, 27, 26, 25, 24, 23, 22, 21,
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        10, 9,  8,  7,  6,  5,  4,  3,  2,  1
+    ];
+
+    // LADDERS DAN SNAKES (Kedudukan Anti-Silang Yang Sangat Kemas dan Disebarkan)
+    // 5 Tangga Naik, 5 Tangga Turun (Ular)
+    const LADDERS = { 6: 16, 12: 29, 19: 22, 26: 36, 38: 43 }; 
+    const SNAKES = { 17: 4, 24: 13, 34: 27, 42: 39, 48: 32 };  
+
+    // --- DATABASE KESELURUHAN TEPAT DARI PDF PENGGUNA (60 Soalan) ---
+    const DB_BALLOON = [
+        { q: "HQ MATA: Patogen berjaya memasuki Cyberaya! Patogen ialah:", a: ["Sel sihat", "Organisma penyebab penyakit", "Vitamin", "Oksigen"], c: 1 },
+        { q: "Barisan pertahanan pertama badan ialah:", a: ["Antibodi", "Kulit", "Antibiotik", "Vaksin"], c: 1 },
+        { q: "Sel darah putih berfungsi untuk:", a: ["Membina tulang", "Memusnahkan patogen", "Menghasilkan makanan", "Mengangkut oksigen"], c: 1 },
+        { q: "Fagositosis berlaku apabila:", a: ["Virus membahagi", "Sel darah putih menelan patogen", "Kulit menghasilkan peluh", "Antibodi musnah"], c: 1 },
+        { q: "Antibodi ialah:", a: ["Organisma asing", "Protein melawan antigen", "Virus lemah", "Sel kulit"], c: 1 },
+        { q: "Antigen ialah:", a: ["Jasad asing yang merangsang antibodi", "Sel darah merah", "Kulit manusia", "Antibiotik"], c: 0 },
+        { q: "Membran mukus terdapat pada:", a: ["Tulang", "Salur respirasi dan pencernaan", "Jantung", "Otot"], c: 1 },
+        { q: "Fungsi bulu hidung ialah:", a: ["Menghasilkan vaksin", "Menapis mikroorganisma", "Menghasilkan antibodi", "Menambah oksigen"], c: 1 },
+        { q: "Peluh dan sebum membantu:", a: ["Menarik virus", "Memusnahkan mikroorganisma", "Membina sel darah", "Menghasilkan vaksin"], c: 1 },
+        { q: "Barisan pertahanan kedua melibatkan:", a: ["Kulit", "Fagositosis", "Tulang", "Rambut"], c: 1 },
+        { q: "HQ MATA mengesan badan menghasilkan lilin telinga, air mata dan lendir. Apakah fungsi bahan ini?", a: ["Menghasilkan virus", "Antiseptik memusnahkan mikroorganisma", "Menambah sel darah merah", "Menghasilkan antibiotik"], c: 1 },
+        { q: "Virus memasuki luka kecil pada tangan ejen. Tindakan pertama badan ialah:", a: ["Hantar sel darah putih", "Hentikan pernafasan", "Musnahkan semua sel", "Abaikan virus"], c: 0 },
+        { q: "Bulu hidung gagal menapis udara. Apa akan berlaku?", a: ["Patogen mudah masuk", "Antibodi hilang", "Tulang lemah", "Darah berhenti"], c: 0 },
+        { q: "Sistem pertahanan pertama gagal. Patogen akan berhadapan dengan:", a: ["Sistem rangka", "Barisan pertahanan kedua", "Sistem saraf", "Otot"], c: 1 },
+        { q: "Patogen mudah merebak melalui:", a: ["Cahaya", "Udara dan titisan air", "Batu", "Besi"], c: 1 },
+        { q: "Vaksin membantu badan:", a: ["Menghasilkan antibodi", "Menghasilkan virus", "Mengurangkan darah", "Menghentikan imun"], c: 0 },
+        { q: "Apabila luka pada kulit tidak dibersihkan dengan baik, keadaan ini menyebabkan:", a: ["Patogen tidak dapat masuk", "Patogen mudah memasuki badan melalui luka", "Sel darah putih berhenti", "Kulit menghasilkan antibodi"], c: 1 },
+        { q: "Apabila kebersihan diri tidak dijaga, kesan utama kepada sistem pertahanan badan ialah:", a: ["Kulit lebih kuat", "Risiko patogen memasuki badan meningkat", "Sel darah putih berhenti", "Badan menghasilkan banyak antibodi"], c: 1 },
+        { q: "Mengapa antibiotik perlu diambil mengikut jadual yang ditetapkan oleh doktor?", a: ["Supaya sentiasa pada aras optimum dalam badan", "Kekal dalam badan tanpa berubah", "Supaya antibodi berhenti berfungsi", "Supaya patogen menjadi kuat"], c: 0 },
+        { q: "Keimunan ialah:", a: ["Keupayaan melawan patogen", "Penghasilan tulang", "Sistem respirasi", "Sistem perkumuhan"], c: 0 },
+        { q: "Vaksin mengandungi:", a: ["Patogen dilemahkan", "Oksigen", "Kulit", "Tulang"], c: 0 },
+        { q: "Kenapa vaksin penting?", a: ["Memberi daya tahan terhadap penyakit", "Menambah berat badan", "Menghasilkan darah", "Menguatkan tulang"], c: 0 },
+        { q: "Suntikan vaksin kedua dipanggil:", a: ["Booster", "Fagositosis", "Mutasi", "Antigen"], c: 0 },
+        { q: "Imunisasi membantu badan dengan cara:", a: ["Meningkatkan daya tahan terhadap penyakit", "Menghasilkan virus dalam badan", "Mengurangkan oksigen dalam darah", "Menghentikan penghasilan antibodi"], c: 0 },
+        { q: "Cyberaya mengalami wabak influenza. Tindakan terbaik:", a: ["Tidak ambil tindakan", "Vaksinasi dan kebersihan", "Kongsi makanan", "Kurang tidur"], c: 1 },
+        { q: "Seorang ejen tidak kuarantin walaupun dijangkiti. Apa kesannya?", a: ["Virus merebak", "Semua sihat", "Antibodi meningkat", "Patogen hilang"], c: 0 },
+        { q: "Bayi menerima antibodi daripada susu ibu. Jenis keimunan ialah:", a: ["Aktif semula jadi", "Pasif semula jadi", "Aktif buatan", "Pasif buatan"], c: 1 },
+        { q: "Pesakit menerima suntikan antiserum. Jenis keimunan:", a: ["Aktif semula jadi", "Pasif buatan", "Aktif buatan", "Pasif semula jadi"], c: 1 },
+        { q: "Selepas sembuh daripada penyakit, seseorang menjadi kebal. Ini ialah:", a: ["Aktif semula jadi", "Pasif semula jadi", "Pasif buatan", "Aktif buatan"], c: 0 },
+        { q: "Vaksin memberikan:", a: ["Keimunan aktif buatan", "Keimunan pasif semula jadi", "Keimunan pasif buatan", "Tiada keimunan"], c: 0 },
+        { q: "Antiserum memberi keimunan yang:", a: ["Lambat dan kekal", "Segera tetapi sementara", "Kekal seumur hidup", "Tidak melibatkan antibodi"], c: 1 },
+        { q: "Keimunan aktif lebih baik kerana:", a: ["Sementara", "Badan menghasilkan memori imun", "Tiada antibodi", "Tidak melawan patogen"], c: 1 },
+        { q: "Antibiotik tidak berkesan terhadap virus kerana:", a: ["Virus bukan bakteria", "Virus terlalu besar", "Virus tiada warna", "Virus tiada darah"], c: 0 },
+        { q: "Antara berikut, yang BUKAN keimunan aktif:", a: ["Vaksin", "Selepas sembuh penyakit", "Antiserum", "Penghasilan antibodi sendiri"], c: 2 },
+        { q: "Vaksin berfungsi dengan:", a: ["Memberi antibodi siap", "Merangsang badan menghasilkan antibodi", "Membunuh semua sel", "Menghasilkan virus baharu"], c: 1 },
+        { q: "Keimunan pasif tidak tahan lama kerana:", a: ["Antibodi tidak dihasilkan sendiri", "Patogen terlalu kuat", "Sel darah putih mati", "Darah berhenti"], c: 0 },
+        { q: "HQ MATA mahu perlindungan segera kepada ejen yang dijangkiti. Pilihan terbaik:", a: ["Vaksin", "Antiserum", "Antibiotik", "Air kosong"], c: 1 },
+        { q: "Cyberaya mahu perlindungan jangka panjang terhadap virus. Strategi terbaik:", a: ["Antiserum sahaja", "Vaksinasi", "Tidak ambil tindakan", "Kurangkan tidur"], c: 1 }
+    ];
+
+    const DB_FILL = [
+        { q: "Patogen boleh memasuki badan melalui sistem __________.", a: ["RESPIRASI", "PENCERNAAN", "PERKUMUHAN", "KULIT"] },
+        { q: "Kulit ialah barisan pertahanan __________.", a: ["PERTAMA", "1"] },
+        { q: "Sel darah putih menjalankan proses __________.", a: ["FAGOSITOSIS"] },
+        { q: "Antibodi dihasilkan oleh __________.", a: ["SEL DARAH PUTIH"] },
+        { q: "Antigen merangsang penghasilan __________.", a: ["ANTIBODI"] },
+        { q: "Patogen tersebar melalui __________ apabila seseorang bersin.", a: ["TITISAN AIR"] },
+        { q: "Vaksin merangsang sistem __________.", a: ["IMUN", "IMUNISASI"] },
+        { q: "Antibiotik perlu diambil mengikut __________ yang ditetapkan.", a: ["DOS", "JADUAL"] },
+        { q: "Keimunan aktif berlaku apabila badan menghasilkan __________ sendiri.", a: ["ANTIBODI"] },
+        { q: "Keimunan pasif berlaku apabila antibodi diperoleh daripada __________.", a: ["LUAR BADAN", "LUAR"] },
+        { q: "Antiserum mengandungi __________.", a: ["ANTIBODI"] },
+        { q: "Vaksin mengandungi patogen yang telah __________ atau dilemahkan.", a: ["DIMATIKAN", "MATI"] },
+        { q: "Bayi memperoleh antibodi daripada susu ibu. Ini ialah keimunan __________ __________.", a: ["PASIF SEMULA JADI"] },
+        { q: "Seseorang menjadi kebal selepas sembuh jangkitan. Ini ialah keimunan __________ __________.", a: ["AKTIF SEMULA JADI"] },
+        { q: "Vaksin merangsang badan hasil antibodi sendiri. Ini ialah keimunan __________ __________.", a: ["AKTIF BUATAN"] },
+        { q: "Suntikan antiserum memberikan antibodi dari sumber luar. Ini ialah keimunan __________ __________.", a: ["PASIF BUATAN"] },
+        { q: "Keimunan __________ menghasilkan antibodi sendiri dan memberi perlindungan jangka panjang.", a: ["AKTIF"] },
+        { q: "Keimunan __________ berlaku apabila antibodi diperoleh dari luar badan dan bersifat sementara.", a: ["PASIF"] }
+    ];
+
+    const DB_MATCH = [
+        [ {l:"Kulit", r:"Halang patogen"}, {l:"Sel darah putih", r:"Musnahkan patogen"}, {l:"Membran mukus", r:"Perangkap mikroorganisma"} ],
+        [ {l:"Vaksin", r:"Merangsang imun"}, {l:"Antibiotik", r:"Membunuh bakteria"} ],
+        [ {l:"Aktif semula jadi", r:"Sembuh penyakit"}, {l:"Aktif buatan", r:"Vaksin"}, {l:"Pasif semula jadi", r:"Susu ibu"}, {l:"Pasif buatan", r:"Antiserum"} ],
+        [ {l:"Antibodi melekat pada patogen", r:"Mengenal pasti dan menyerang patogen"}, {l:"Patogen menggumpal", r:"Patogen melekat antara satu sama lain"}, {l:"Patogen tidak dapat memasuki sel perumah", r:"Menghalang jangkitan merebak"}, {l:"Sel darah putih bertindak", r:"Memusnahkan gumpalan patogen"} ],
+        [ {l:"Bayi mendapat antibodi dari susu ibu", r:"Keimunan pasif semula jadi"}, {l:"Sembuh dari penyakit dan kebal", r:"Keimunan aktif semula jadi"}, {l:"Suntikan vaksin", r:"Keimunan aktif buatan"}, {l:"Suntikan antiserum", r:"Keimunan pasif buatan"} ]
+    ];
+
+    // --- STATE ---
+    let state = {
+        players: [],
+        currentIdx: 0,
+        gameActive: false,
+        finishers: []
+    };
+
+    let miniGameState = {
+        type: null, callback: null, matchPairs: [], selLeft: null, selRight: null, matchesDone: 0
+    };
+
+    let modalCallback = null;
+    let minigameTimer = null;
+    let timeLeft = 20;
+
+    let globalTimerInterval = null;
+    let globalTimeLeft = 900; 
+
+    // Sistem Soalan Tidak Berulang & Queue Barisan Pertama
+    let availableQuestions = { balloon: [], fill: [], match: [] };
+
+    // Index soalan Barisan Pertama
+    let priorityQuestions = {
+        balloon: [1, 6, 7, 8, 10, 12, 13, 16],
+        fill: [0, 1],
+        match: [0]
+    };
+
+    function initQuestionPools() {
+        availableQuestions.balloon = Array.from({length: DB_BALLOON.length}, (_, i) => i);
+        availableQuestions.fill = Array.from({length: DB_FILL.length}, (_, i) => i);
+        availableQuestions.match = Array.from({length: DB_MATCH.length}, (_, i) => i);
+        
+        priorityQuestions = {
+            balloon: [1, 6, 7, 8, 10, 12, 13, 16], fill: [0, 1], match: [0]
+        };
+    }
+
+    function getUniqueQuestion(type, pool, dbLength) {
+        let pPool = priorityQuestions[type];
+        if (pPool && pPool.length > 0) {
+            const randPIdx = Math.floor(Math.random() * pPool.length);
+            const selectedId = pPool[randPIdx];
+            pPool.splice(randPIdx, 1);
+            
+            const mainIdx = pool.indexOf(selectedId);
+            if(mainIdx !== -1) pool.splice(mainIdx, 1);
+            return selectedId;
+        }
+
+        if (pool.length === 0) {
+            for (let i = 0; i < dbLength; i++) pool.push(i);
+        }
+        const randIdx = Math.floor(Math.random() * pool.length);
+        const selectedId = pool[randIdx];
+        pool.splice(randIdx, 1);
+        return selectedId;
+    }
+
+    // --- SETUP ---
+    function setPlayerCount(num) {
+        sfx.click(); // Bunyi klik butang
+        document.querySelectorAll('.p-count-btn').forEach(btn => {
+            btn.classList.remove('border-sky-400', 'bg-sky-50');
+            btn.classList.add('border-slate-300', 'bg-white');
+        });
+        event.target.classList.remove('border-slate-300', 'bg-white');
+        event.target.classList.add('border-sky-400', 'bg-sky-50');
+
+        const container = document.getElementById('player-inputs');
+        container.innerHTML = '';
+        
+        for(let i=0; i<num; i++) {
+            const t = TEAMS[i];
+            container.innerHTML += `
+                <div class="flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-200 bg-white shadow-sm" style="border-left-width: 8px; border-left-color: ${t.color}">
+                    <span class="text-4xl md:text-5xl">${t.icon}</span>
+                    <input type="text" id="p-name-${i}" class="w-full bg-transparent text-slate-700 font-black text-2xl md:text-3xl outline-none uppercase placeholder-slate-300" placeholder="KOD NAMA EJEN ${i+1}">
+                </div>
+            `;
+        }
+        document.getElementById('btn-start').classList.remove('hidden');
+    }
+
+    function startGame() {
+        sfx.click();
+        playBGM(); // Mula BGM bila klik Mula
+        const inputs = document.querySelectorAll('input[id^="p-name-"]');
+        state.players = [];
+        state.finishers = [];
+
+        inputs.forEach((inp, idx) => {
+            const name = inp.value.trim() || `EJEN ${idx+1}`;
+            state.players.push({
+                id: idx, name: name.toUpperCase(), team: TEAMS[idx], pos: 0, finished: false
+            });
+        });
+
+        initQuestionPools();
+        generateBoard();
+        window.addEventListener('resize', drawCanvasLines);
+        
+        state.gameActive = true;
+        updateHUD();
+        switchScreen('screen-game');
+        setTimeout(drawCanvasLines, 500);
+        
+        startGlobalTimer();
+        startTurn();
+    }
+
+    function startGlobalTimer() {
+        globalTimeLeft = 900; 
+        updateGlobalTimerUI();
+        globalTimerInterval = setInterval(() => {
+            globalTimeLeft--;
+            updateGlobalTimerUI();
+            if(globalTimeLeft <= 0) {
+                clearInterval(globalTimerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function updateGlobalTimerUI() {
+        const el = document.getElementById('global-timer-text');
+        if(!el) return;
+        const m = Math.floor(globalTimeLeft / 60).toString().padStart(2, '0');
+        const s = (globalTimeLeft % 60).toString().padStart(2, '0');
+        el.innerText = `${m}:${s}`;
+        
+        if (globalTimeLeft <= 60) {
+            el.classList.remove('text-[#10b981]');
+            el.classList.add('text-[--c-tekno]', 'animate-pulse');
+        }
+    }
+
+    function handleTimeOut() {
+        sfx.wrong();
+        state.gameActive = false;
+        showModal("MASA TAMAT!", "Masa simulasi 15 minit telah tamat! Sistem M.A.T.A akan menilai prestasi dan meranking kedudukan ejen...", "danger", () => {
+            handleVictory();
+        });
+    }
+
+    function generateBoard() {
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+        
+        let isAlt = false;
+        GRID_LAYOUT.forEach((num, index) => {
+            if(index % 10 === 0) isAlt = !isAlt; 
+            
+            const tile = document.createElement('div');
+            tile.className = `tile ${isAlt ? 'tile-alt' : ''}`;
+            tile.id = `tile-${num}`;
+            
+            if (num === TOTAL_TILES) {
+                tile.className = 'tile tile-finish';
+            }
+
+            tile.innerHTML = `
+                <span class="absolute top-1 left-2 text-xs md:text-sm font-bold opacity-50">${num}</span>
+                <span class="text-xl md:text-2xl font-black">${num === TOTAL_TILES ? 'M.A.T.A' : ''}</span>
+                <div class="players-container" id="tile-players-${num}"></div>
+            `;
+            board.appendChild(tile);
+            isAlt = !isAlt;
+        });
+    }
+
+    function drawCanvasLines() {
+        const canvas = document.getElementById('canvas-overlay');
+        const container = document.getElementById('board-container');
+        if(!canvas || !container) return;
+        
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const [start, end] of Object.entries(LADDERS)) {
+            drawSolidConnection(ctx, start, end, '#10b981', '🚀');
+        }
+        for (const [start, end] of Object.entries(SNAKES)) {
+            drawSolidConnection(ctx, start, end, '#f43f5e', '🦠');
+        }
+    }
+
+    function drawSolidConnection(ctx, startId, endId, color, icon) {
+        const startEl = document.getElementById(`tile-${startId}`);
+        const endEl = document.getElementById(`tile-${endId}`);
+        if(!startEl || !endEl) return;
+
+        const containerRect = document.getElementById('board-container').getBoundingClientRect();
+        const startRect = startEl.getBoundingClientRect();
+        const endRect = endEl.getBoundingClientRect();
+
+        const startX = startRect.left - containerRect.left + startRect.width/2;
+        const startY = startRect.top - containerRect.top + startRect.height/2;
+        const endX = endRect.left - containerRect.left + endRect.width/2;
+        const endY = endRect.top - containerRect.top + endRect.height/2;
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        const nx = -dy / len;
+        const ny = dx / len;
+        
+        const curveDepth = color === '#10b981' ? 30 : -30; 
+        const cpX = (startX + endX) / 2 + (nx * curveDepth);
+        const cpY = (startY + endY) / 2 + (ny * curveDepth);
+
+        ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+
+        ctx.shadowBlur = 0; 
+
+        const midX = 0.25 * startX + 0.5 * cpX + 0.25 * endX;
+        const midY = 0.25 * startY + 0.5 * cpY + 0.25 * endY;
+        
+        ctx.beginPath();
+        ctx.arc(midX, midY, 15, 0, 2*Math.PI);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+
+        ctx.font = "18px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(icon, midX, midY);
+    }
+
+    // --- TIMER SYSTEM ---
+    function startTimer(correctAnswerText) {
+        timeLeft = 20;
+        const timerContainer = document.getElementById('mg-timer-container');
+        const timerText = document.getElementById('mg-timer-text');
+        
+        timerContainer.classList.remove('border-[--c-tekno]', 'animate-pulse');
+        timerContainer.classList.add('border-slate-300');
+        timerText.classList.remove('text-[--c-tekno]');
+        timerText.classList.add('text-slate-800');
+        timerText.innerText = timeLeft;
+
+        clearInterval(minigameTimer);
+        minigameTimer = setInterval(() => {
+            timeLeft--;
+            timerText.innerText = timeLeft;
+
+            if (timeLeft === 10) {
+                timerContainer.classList.remove('border-slate-300');
+                timerContainer.classList.add('border-[--c-tekno]', 'animate-pulse');
+                timerText.classList.remove('text-slate-800');
+                timerText.classList.add('text-[--c-tekno]');
+            }
+
+            if (timeLeft <= 10 && timeLeft > 0) {
+                sfx.tick();
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(minigameTimer);
+                miniGameState.callback(false, `MASA TAMAT!\n\nJawapan Sebenar:\n${correctAnswerText}`);
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(minigameTimer);
+    }
+
+    // --- TURN & MOVEMENT LOGIC ---
+    function getActivePlayer() { return state.players[state.currentIdx]; }
+
+    function startTurn() {
+        if(!state.gameActive) return;
+        const p = getActivePlayer();
+        
+        document.getElementById('turn-icon').innerText = p.team.icon;
+        document.getElementById('turn-name').innerText = p.name;
+        document.getElementById('turn-name').style.color = p.team.color;
+        
+        updateHUD();
+    }
+
+    function nextTurn() {
+        if(!state.gameActive) return;
+
+        if (state.players.every(p => p.finished)) {
+            handleVictory();
+            return;
+        }
+
+        do {
+            state.currentIdx = (state.currentIdx + 1) % state.players.length;
+        } while (state.players[state.currentIdx].finished);
+
+        startTurn();
+    }
+
+    function startDiceRoll() {
+        sfx.click();
+        const btn = document.getElementById('btn-roll');
+        const dice = document.getElementById('visual-dice');
+        btn.disabled = true; btn.classList.add('opacity-50');
+        dice.classList.add('rolling');
+        
+        const rollSfx = setInterval(() => {
+            if(dice.classList.contains('rolling')) sfx.dice();
+            else clearInterval(rollSfx);
+        }, 150);
+
+        setTimeout(() => {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            dice.classList.remove('rolling');
+            sfx.pop(); // Bunyi berhenti dadu
+            
+            const rots = [[0,0], [0,-90], [0,-180], [0,90], [-90,0], [90,0]];
+            dice.style.transform = `rotateX(${rots[roll-1][0]}deg) rotateY(${rots[roll-1][1]}deg)`;
+            
+            setTimeout(() => {
+                showModal('KEPUTUSAN DADU', `Anda bergerak ${roll} langkah.`, 'info', () => movePlayerSteps(roll));
+            }, 600);
+        }, 1000);
+    }
+
+    function movePlayerSteps(steps) {
+        let currentStep = 0;
+        const p = getActivePlayer();
+        
+        function stepInterval() {
+            if (currentStep < steps) {
+                p.pos++;
+                if (p.pos > TOTAL_TILES) {
+                    p.pos = TOTAL_TILES - (p.pos - TOTAL_TILES); 
+                }
+                updateHUD();
+                sfx.move();
+                currentStep++;
+                setTimeout(stepInterval, 300);
+            } else {
+                resolveTileEvent();
+            }
+        }
+        stepInterval();
+    }
+
+    function resolveTileEvent() {
+        const p = getActivePlayer();
+        
+        if (p.pos === TOTAL_TILES) {
+            p.finished = true;
+            state.finishers.push(p);
+            sfx.win();
+            
+            if (state.players.every(p => p.finished)) {
+                handleVictory(); 
+            } else {
+                showModal('MISI SELESAI!', `Tahniah Ejen ${p.name}, anda telah berjaya tiba di HQ M.A.T.A!\n\nPemain lain akan meneruskan misi.`, 'success', () => {
+                    updateHUD();
+                    nextTurn();
+                });
+            }
+            return;
+        }
+
+        if (LADDERS[p.pos]) {
+            sfx.correct();
+            showModal('LALUAN PINTAS!', 'Sistem M.A.T.A membantu! Naik terus ke atas.', 'success', () => {
+                p.pos = LADDERS[p.pos];
+                updateHUD();
+                triggerRandomMiniGame();
+            });
+        } else if (SNAKES[p.pos]) {
+            sfx.wrong();
+            showModal('AMARAN TOKSIN!', 'Sistem pertahanan lemah! Anda dijangkiti dan jatuh ke bawah.', 'danger', () => {
+                p.pos = SNAKES[p.pos];
+                updateHUD();
+                
+                const btn = document.getElementById('btn-roll');
+                btn.disabled = false; 
+                btn.classList.remove('opacity-50');
+
+                nextTurn(); 
+            });
+        } else {
+            triggerRandomMiniGame();
+        }
+    }
+
+    // --- MINI GAMES ENGINE ---
+    function triggerRandomMiniGame() {
+        const type = Math.floor(Math.random() * 3); 
+        miniGameState.callback = handleMiniGameResult;
+        
+        if(type === 0) startBalloonGame();
+        else if(type === 1) startFillGame();
+        else if(type === 2) startMatchGame();
+    }
+
+    function showMiniGameOverlay(areaId) {
+        ['area-balloon', 'area-fill', 'area-match'].forEach(aid => document.getElementById(aid).classList.add('hidden-screen'));
+        document.getElementById(areaId).classList.remove('hidden-screen');
+        
+        const overlay = document.getElementById('minigame-overlay');
+        overlay.classList.remove('hidden-screen');
+        void overlay.offsetWidth;
+        overlay.classList.remove('opacity-0');
+    }
+
+    function hideMiniGameOverlay() {
+        const overlay = document.getElementById('minigame-overlay');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => overlay.classList.add('hidden-screen'), 300);
+    }
+
+    function handleMiniGameResult(success, errorMessage = "") {
+        hideMiniGameOverlay();
+        stopTimer();
+        const btn = document.getElementById('btn-roll');
+        btn.disabled = false; btn.classList.remove('opacity-50');
+
+        if(success) {
+            sfx.correct();
+            showModal('TEPAT!', 'Kedudukan anda disahkan. Bersedia untuk giliran seterusnya.', 'success', nextTurn);
+        } else {
+            sfx.wrong();
+            const p = getActivePlayer();
+            // Undur 2 petak denda
+            if(p.pos > 2) { p.pos = p.pos - 2; }
+            else { p.pos = 1; }
+            updateHUD();
+            
+            const finalMsg = errorMessage ? errorMessage : 'Gagal melepasi halangan!';
+            showModal('SALAH!', finalMsg + '\n\nAnda didenda undur 2 petak.', 'danger', nextTurn);
+        }
+    }
+
+    // GAME 0: BALLOONS 
+    function startBalloonGame() {
+        showMiniGameOverlay('area-balloon');
+        const qIndex = getUniqueQuestion('balloon', availableQuestions.balloon, DB_BALLOON.length);
+        const qData = DB_BALLOON[qIndex];
+        document.getElementById('mg-balloon-q').innerText = qData.q;
+        
+        const correctAnswerText = qData.a[qData.c];
+        startTimer(correctAnswerText); 
+        
+        const container = document.getElementById('balloon-container');
+        container.innerHTML = '';
+        const colors = ['#0ea5e9', '#f43f5e', '#f59e0b', '#10b981']; 
+        
+        qData.a.forEach((opt, idx) => {
+            const b = document.createElement('div');
+            b.className = 'balloon shadow-lg';
+            b.style.backgroundColor = colors[idx % 4];
+            b.style.animationDelay = `${idx * 0.2}s`;
+            b.innerText = opt;
+            b.onclick = () => {
+                sfx.pop();
+                stopTimer(); 
+                b.classList.add('popped');
+                
+                const isCorrect = (idx === qData.c);
+                const errMsg = isCorrect ? "" : `Jawapan Sebenar:\n${correctAnswerText}`;
+                
+                setTimeout(() => miniGameState.callback(isCorrect, errMsg), 400);
+            };
+            container.appendChild(b);
+        });
+    }
+
+    // GAME 1: FILL IN BLANK
+    function startFillGame() {
+        showMiniGameOverlay('area-fill');
+        const qIndex = getUniqueQuestion('fill', availableQuestions.fill, DB_FILL.length);
+        const qData = DB_FILL[qIndex];
+        document.getElementById('mg-fill-q').innerText = qData.q;
+        const inp = document.getElementById('mg-fill-input');
+        inp.value = '';
+        inp.focus();
+        
+        miniGameState.tempAns = qData.a; 
+        startTimer(qData.a.join(" / ")); 
+    }
+
+    function checkFillAnswer() {
+        sfx.click();
+        stopTimer(); 
+        const ans = document.getElementById('mg-fill-input').value.trim().toUpperCase();
+        
+        const isCorrect = miniGameState.tempAns.includes(ans);
+        const errMsg = isCorrect ? "" : `Jawapan Sebenar:\n${miniGameState.tempAns.join(" ATAU ")}`;
+        
+        miniGameState.callback(isCorrect, errMsg);
+    }
+
+    // GAME 2: MATCHING
+    function startMatchGame() {
+        showMiniGameOverlay('area-match');
+        const qIndex = getUniqueQuestion('match', availableQuestions.match, DB_MATCH.length);
+        const pairData = DB_MATCH[qIndex];
+        
+        miniGameState.matchPairs = pairData;
+        miniGameState.selLeft = null;
+        miniGameState.selRight = null;
+        miniGameState.matchesDone = 0;
+
+        const correctAnswersStr = pairData.map(p => `• ${p.l} ➡️ ${p.r}`).join("\n");
+        startTimer(correctAnswersStr);
+
+        let leftArr = pairData.map((p, i) => ({txt: p.l, id: i})).sort(()=>Math.random()-0.5);
+        let rightArr = pairData.map((p, i) => ({txt: p.r, id: i})).sort(()=>Math.random()-0.5);
+
+        const lCont = document.getElementById('match-left');
+        const rCont = document.getElementById('match-right');
+        lCont.innerHTML = ''; rCont.innerHTML = '';
+
+        leftArr.forEach(item => {
+            const b = document.createElement('div');
+            b.className = 'match-btn left-btn shadow-sm'; b.innerText = item.txt;
+            b.onclick = () => handleMatchClick('left', item.id, b, correctAnswersStr);
+            lCont.appendChild(b);
+        });
+        rightArr.forEach(item => {
+            const b = document.createElement('div');
+            b.className = 'match-btn right-btn shadow-sm'; b.innerText = item.txt;
+            b.onclick = () => handleMatchClick('right', item.id, b, correctAnswersStr);
+            rCont.appendChild(b);
+        });
+    }
+
+    function handleMatchClick(side, id, el, correctAnswersStr) {
+        if(el.classList.contains('matched')) return;
+        sfx.pop();
+
+        document.querySelectorAll(`.${side}-btn`).forEach(b => {
+            if(!b.classList.contains('matched')) b.classList.remove('selected');
+        });
+        el.classList.add('selected');
+
+        if(side === 'left') { miniGameState.selLeft = {id, el}; }
+        else { miniGameState.selRight = {id, el}; }
+
+        if(miniGameState.selLeft && miniGameState.selRight) {
+            if(miniGameState.selLeft.id === miniGameState.selRight.id) {
+                sfx.correct();
+                miniGameState.selLeft.el.classList.replace('selected', 'matched');
+                miniGameState.selRight.el.classList.replace('selected', 'matched');
+                miniGameState.selLeft = null; miniGameState.selRight = null;
+                miniGameState.matchesDone++;
+                
+                if(miniGameState.matchesDone === miniGameState.matchPairs.length) {
+                    stopTimer();
+                    setTimeout(() => miniGameState.callback(true), 800);
+                }
+            } else {
+                stopTimer();
+                sfx.wrong();
+                miniGameState.selLeft.el.classList.remove('selected');
+                miniGameState.selRight.el.classList.remove('selected');
+                miniGameState.selLeft = null; miniGameState.selRight = null;
+                
+                setTimeout(() => miniGameState.callback(false, `Padanan Salah!\n\nJawapan Sebenar:\n${correctAnswersStr}`), 500);
+            }
+        }
+    }
+
+    // --- UTILS & UI ---
+    function updateHUD() {
+        document.querySelectorAll('.players-container, #start-zone-players').forEach(c => c.innerHTML = '');
+        
+        state.players.forEach(p => {
+            const containerId = p.pos === 0 ? 'start-zone-players' : `tile-players-${p.pos}`;
+            const tc = document.getElementById(containerId);
+            
+            if(tc) {
+                const tk = document.createElement('div');
+                tk.className = 'avatar-token';
+                tk.style.backgroundColor = p.team.color;
+                tk.innerText = p.team.icon;
+                tk.title = p.name;
+                tc.appendChild(tk);
+            }
+        });
+    }
+
+    function switchScreen(id) {
+        ['screen-welcome', 'screen-game', 'screen-end'].forEach(sid => document.getElementById(sid).classList.add('hidden-screen'));
+        document.getElementById(id).classList.remove('hidden-screen');
+    }
+
+    function handleVictory() {
+        sfx.win();
+        state.gameActive = false;
+        clearInterval(globalTimerInterval);
+        
+        const nonFinishers = state.players.filter(p => !p.finished).sort((a, b) => b.pos - a.pos);
+        const rankedPlayers = [...state.finishers, ...nonFinishers];
+        const winner = rankedPlayers[0];
+        
+        document.getElementById('end-winner').innerText = `${winner.team.icon} ${winner.name} (${winner.team.name})`;
+        document.getElementById('end-winner').style.color = winner.team.color;
+        
+        const rankingContainer = document.getElementById('end-ranking-list');
+        rankingContainer.innerHTML = '';
+        rankedPlayers.forEach((p, idx) => {
+            const statusText = p.finished ? 'TAMAT 🏆' : `Petak ${p.pos}`;
+            rankingContainer.innerHTML += `
+                <div class="flex justify-between items-center bg-white p-4 md:p-6 rounded-2xl border-2 border-slate-200 shadow-sm">
+                    <span class="text-2xl md:text-3xl font-black ${idx === 0 ? 'text-[--c-neuro]' : 'text-slate-700'}">
+                        #${idx + 1} ${p.team.icon} ${p.name}
+                    </span>
+                    <span class="text-2xl md:text-3xl font-mono font-black ${p.finished ? 'text-yellow-500' : 'text-[#44bd32]'}">${statusText}</span>
+                </div>
+            `;
+        });
+
+        switchScreen('screen-end');
+    }
+
+    // --- MODAL ---
+    function showModal(title, message, type = 'info', callback = null) {
+        const overlay = document.getElementById('modal-overlay');
+        const content = document.getElementById('modal-content');
+        
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-message').innerText = message;
+        modalCallback = callback;
+
+        const btn = document.getElementById('modal-btn');
+        if(type === 'danger') {
+            document.getElementById('modal-title').style.color = 'var(--c-tekno)'; 
+            content.style.borderColor = 'var(--c-tekno)';
+            btn.className = 'cute-button btn-tekno w-full py-6 text-3xl tracking-wider';
+        } else if (type === 'success') {
+            document.getElementById('modal-title').style.color = '#10b981';
+            content.style.borderColor = '#10b981';
+            btn.className = 'cute-button btn-green w-full py-6 text-3xl tracking-wider';
+        } else {
+            document.getElementById('modal-title').style.color = 'var(--c-kombat)'; 
+            content.style.borderColor = 'var(--c-kombat)';
+            btn.className = 'cute-button w-full py-6 text-3xl tracking-wider';
+        }
+
+        overlay.classList.remove('hidden-screen');
+        void overlay.offsetWidth;
+        overlay.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        
+        btn.onclick = () => {
+            sfx.click(); // Bunyi masa tekan Teruskan
+            closeModal();
+        };
+        btn.focus();
+        btn.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                btn.click();
+            }
+        }, {once: true});
+    }
+
+    function closeModal() {
+        const overlay = document.getElementById('modal-overlay');
+        const content = document.getElementById('modal-content');
+        overlay.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => {
+            overlay.classList.add('hidden-screen');
+            if (modalCallback) {
+                const cb = modalCallback;
+                modalCallback = null;
+                cb();
+            }
+        }, 300);
+    }
+</script>
+</body>
+</html>
